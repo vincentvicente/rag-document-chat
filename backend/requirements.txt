@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+python-multipart
+PyPDF2
+python-docx
+numpy
+scikit-learn
+langchain
+langchain-community
+pydantic
+python-dotenv
+sqlalchemy
+alembic
+google-generativeai
