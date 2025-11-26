@@ -1,35 +1,35 @@
 from typing import List, Dict, Any, Optional
 
-# 将文本分割成块
+# Split text into chunks
 def split_text(text: str, chunk_size: int = 1000, chunk_overlap: int = 200, separator: str = '\n') -> List[str]:
     if not text:
         return []
     
-    # 按分隔符分割文本
+    # Split text by separator
     segments = text.split(separator)
     chunks = []
     current_chunk = []
     current_size = 0
     
     for segment in segments:
-        # 如果段落太大，进一步分割
+        # If segment is too large, split it further
         if len(segment) > chunk_size:
-            # 如果当前块不为空，先添加它
+            # If current chunk is not empty, add it first
             if current_size > 0:
                 chunks.append(separator.join(current_chunk))
                 current_chunk = []
                 current_size = 0
             
-            # 分割大段落
+            # Split large segment
             sub_segments = split_long_segment(segment, chunk_size)
             chunks.extend(sub_segments)
             continue
         
-        # 如果添加这个段落会超出块大小，先保存当前块
+        # If adding this segment would exceed chunk size, save current chunk first
         if current_size + len(segment) > chunk_size and current_size > 0:
             chunks.append(separator.join(current_chunk))
             
-            # 保留一部分重叠内容
+            # Keep some overlapping content
             overlap_size = min(current_size, chunk_overlap)
             overlap_items = current_chunk[-int(overlap_size / (current_size / len(current_chunk)) + 0.5):]
             
@@ -39,13 +39,13 @@ def split_text(text: str, chunk_size: int = 1000, chunk_overlap: int = 200, sepa
         current_chunk.append(segment)
         current_size += len(segment) + len(separator)
     
-    # 添加最后一个块
+    # Add the last chunk
     if current_chunk:
         chunks.append(separator.join(current_chunk))
     
     return chunks
 
-# 分割过长的段落
+# Split overly long segments
 def split_long_segment(segment: str, max_size: int) -> List[str]:
     chunks = []
     i = 0

@@ -1,290 +1,290 @@
-# RAG 文档问答系统
+# RAG Document Q&A System
 
-基于检索增强生成(RAG)的文档问答系统，集成 Google Gemini API，支持 PDF 和 DOCX 文件的上传和智能问答。支持两种模式：
-- 📄 **文档问答模式**：基于上传的文档内容进行智能问答
-- 💬 **普通对话模式**：与 Gemini AI 进行自由对话
+A document Q&A system based on Retrieval-Augmented Generation (RAG), integrated with Google Gemini API, supporting PDF and DOCX file uploads and intelligent Q&A. Supports two modes:
+- 📄 **Document Q&A Mode**: Intelligent Q&A based on uploaded document content
+- 💬 **General Chat Mode**: Free conversation with Gemini AI
 
 
-## 项目结构
+## Project Structure
 
 ```
 project-website-aichat/
-├── backend/                    # Python FastAPI 后端服务
-│   ├── app/                   # 应用核心代码
-│   │   ├── api/              # API路由
-│   │   │   ├── documents.py  # 文档管理API
-│   │   │   └── queries.py    # 查询问答API
-│   │   ├── models/           # 数据模型
-│   │   │   ├── database.py   # 数据库配置
-│   │   │   ├── models.py     # SQLAlchemy模型
-│   │   │   ├── schemas.py    # Pydantic模式
-│   │   │   └── crud.py       # 数据库操作
-│   │   ├── services/         # 业务逻辑服务
-│   │   │   ├── document_service.py   # 文档处理服务
-│   │   │   ├── embedding_service.py  # 向量嵌入服务
-│   │   │   └── rag_service.py        # RAG问答服务
-│   │   └── utils/            # 工具函数
-│   │       ├── file_parser.py        # 文件解析工具
-│   │       └── text_splitter.py      # 文本分割工具
-│   ├── uploads/              # 上传文件存储
-│   ├── main.py              # FastAPI应用入口
-│   ├── requirements.txt     # Python依赖
-│   ├── setup.sh            # 环境设置脚本
-│   ├── run.sh              # 启动脚本
-│   └── rag.db              # SQLite数据库
+├── backend/                    # Python FastAPI backend service
+│   ├── app/                   # Application core code
+│   │   ├── api/              # API routes
+│   │   │   ├── documents.py  # Document management API
+│   │   │   └── queries.py    # Query Q&A API
+│   │   ├── models/           # Data models
+│   │   │   ├── database.py   # Database configuration
+│   │   │   ├── models.py     # SQLAlchemy models
+│   │   │   ├── schemas.py    # Pydantic schemas
+│   │   │   └── crud.py       # Database operations
+│   │   ├── services/         # Business logic services
+│   │   │   ├── document_service.py   # Document processing service
+│   │   │   ├── embedding_service.py  # Vector embedding service
+│   │   │   └── rag_service.py        # RAG Q&A service
+│   │   └── utils/            # Utility functions
+│   │       ├── file_parser.py        # File parsing utilities
+│   │       └── text_splitter.py      # Text splitting utilities
+│   ├── uploads/              # Uploaded file storage
+│   ├── main.py              # FastAPI application entry point
+│   ├── requirements.txt     # Python dependencies
+│   ├── setup.sh            # Environment setup script
+│   ├── run.sh              # Startup script
+│   └── rag.db              # SQLite database
 │
-└── frontend/               # React前端项目
+└── frontend/               # React frontend project
     ├── src/
-    │   ├── components/     # React组件
-    │   │   ├── DocumentUpload.tsx    # 文件上传组件
-    │   │   ├── DocumentChat.tsx      # 文档问答聊天组件
-    │   │   ├── DocumentList.tsx      # 文档列表组件
-    │   │   └── ui/                   # Shadcn UI组件
+    │   ├── components/     # React components
+    │   │   ├── DocumentUpload.tsx    # File upload component
+    │   │   ├── DocumentChat.tsx      # Document Q&A chat component
+    │   │   ├── DocumentList.tsx      # Document list component
+    │   │   └── ui/                   # Shadcn UI components
     │   ├── pages/
-    │   │   ├── Rag.tsx               # RAG主页面
-    │   │   ├── Chat.tsx              # 聊天页面
-    │   │   └── Index.tsx             # 首页
+    │   │   ├── Rag.tsx               # RAG main page
+    │   │   ├── Chat.tsx              # Chat page
+    │   │   └── Index.tsx             # Home page
     │   ├── lib/
-    │   │   ├── api.ts                # API客户端
-    │   │   └── utils.ts              # 工具函数
+    │   │   ├── api.ts                # API client
+    │   │   └── utils.ts              # Utility functions
     │   └── hooks/                    # React Hooks
     ├── package.json
     └── ...
 ```
 
-## 技术栈
+## Tech Stack
 
-### 后端
-- **框架**: Python + FastAPI
-- **数据库**: SQLite + SQLAlchemy ORM
-- **文档解析**: PyPDF2 (PDF) + python-docx (DOCX)
-- **向量处理**: NumPy + scikit-learn
-- **AI集成**: Google Gemini API + LangChain
-- **数据验证**: Pydantic
+### Backend
+- **Framework**: Python + FastAPI
+- **Database**: SQLite + SQLAlchemy ORM
+- **Document Parsing**: PyPDF2 (PDF) + python-docx (DOCX)
+- **Vector Processing**: NumPy + scikit-learn
+- **AI Integration**: Google Gemini API + LangChain
+- **Data Validation**: Pydantic
 
-### 前端
-- **框架**: React 18 + TypeScript
-- **构建工具**: Vite
-- **UI组件**: Shadcn UI (基于 Radix UI + Tailwind CSS)
-- **路由**: React Router
-- **状态管理**: TanStack Query
-- **样式**: Tailwind CSS
+### Frontend
+- **Framework**: React 18 + TypeScript
+- **Build Tool**: Vite
+- **UI Components**: Shadcn UI (based on Radix UI + Tailwind CSS)
+- **Routing**: React Router
+- **State Management**: TanStack Query
+- **Styling**: Tailwind CSS
 
-## 🎯 功能特性
+## 🎯 Features
 
-### 文档管理
-- ✅ 支持 PDF 和 DOCX 格式
-- ✅ 自动文本提取和解析
-- ✅ 智能文本分块（基于页面结构）
-- ✅ 文档预览和元数据管理
+### Document Management
+- ✅ Support for PDF and DOCX formats
+- ✅ Automatic text extraction and parsing
+- ✅ Intelligent text chunking (based on page structure)
+- ✅ Document preview and metadata management
 
-### 智能问答
-- ✅ 基于 Gemini 2.5-flash 的高质量回答
-- ✅ 向量语义搜索，精准匹配相关内容
-- ✅ 支持文档模式和普通对话模式
-- ✅ 回答引用原文，可追溯来源
+### Intelligent Q&A
+- ✅ High-quality answers based on Gemini 2.5-flash
+- ✅ Vector semantic search for precise content matching
+- ✅ Support for document mode and general chat mode
+- ✅ Answer citations with traceable sources
 
-### 对话管理
-- ✅ 完整的对话历史记录
-- ✅ 多文档会话管理
-- ✅ 实时消息流式展示
+### Conversation Management
+- ✅ Complete conversation history
+- ✅ Multi-document session management
+- ✅ Real-time streaming message display
 
-## 快速开始
+## Quick Start
 
-### 方法一：一键启动 (推荐)
+### Method 1: One-Click Startup (Recommended)
 
-#### 启动后端
+#### Start Backend
 ```bash
 cd backend
-./setup.sh    # 一键设置Python环境和依赖
-./run.sh      # 启动后端服务
+./setup.sh    # One-click setup of Python environment and dependencies
+./run.sh      # Start backend service
 ```
 
-#### 启动前端
+#### Start Frontend
 ```bash
 cd frontend
-npm install   # 安装依赖
-npm run dev   # 启动前端服务
+npm install   # Install dependencies
+npm run dev   # Start frontend service
 ```
 
-### 方法二：手动启动
+### Method 2: Manual Startup
 
-#### 后端设置
+#### Backend Setup
 ```bash
 cd backend
 
-# 创建虚拟环境 (可选)
+# Create virtual environment (optional)
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# 安装依赖
+# Install dependencies
 pip install -r requirements.txt
 
-# 启动服务
+# Start service
 python main.py
 ```
 
-#### 前端设置
+#### Frontend Setup
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-### 环境变量配置 ⚙️
+### Environment Variable Configuration ⚙️
 
-**必需**：在 `backend/` 目录创建 `.env` 文件并配置 Gemini API Key：
+**Required**: Create a `.env` file in the `backend/` directory and configure the Gemini API Key:
 
 ```env
-# Google Gemini API Key (必需)
+# Google Gemini API Key (required)
 GEMINI_API_KEY=your_actual_gemini_api_key_here
 
-# Server Port (可选，默认3000)
+# Server Port (optional, default 3000)
 PORT=3000
 ```
 
-#### 获取 Gemini API Key
+#### Getting Gemini API Key
 
-1. 访问 [Google AI Studio](https://aistudio.google.com/app/apikey)
-2. 登录 Google 账号
-3. 点击 "Create API Key" 创建新密钥
-4. 复制密钥到 `.env` 文件
+1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Sign in with Google account
+3. Click "Create API Key" to create a new key
+4. Copy the key to the `.env` file
 
-## 🔑 API Key 配置说明
+## 🔑 API Key Configuration Guide
 
-### 系统工作模式
+### System Working Modes
 
-系统会根据 API Key 配置自动选择工作模式：
+The system automatically selects the working mode based on API Key configuration:
 
-#### ✅ 正常模式（推荐）
-配置了有效的 `GEMINI_API_KEY` 后：
-- **文本生成**：使用 Gemini 2.5-flash 模型生成高质量回答
-- **文本嵌入**：使用 Gemini `embedding-001` 模型生成语义向量
-- **响应速度**：取决于网络延迟（通常 2-5 秒）
+#### ✅ Normal Mode (Recommended)
+After configuring a valid `GEMINI_API_KEY`:
+- **Text Generation**: Uses Gemini 2.5-flash model to generate high-quality answers
+- **Text Embedding**: Uses Gemini `embedding-001` model to generate semantic vectors
+- **Response Speed**: Depends on network latency (typically 2-5 seconds)
 
-#### ⚠️ 降级模式（测试用）
-未配置 API Key 或配额超限时：
-- **文本生成**：使用基于文档内容的模拟回答
-- **文本嵌入**：使用随机向量（仍可进行相似度搜索）
-- **功能完整性**：所有功能可用，但回答质量降低
+#### ⚠️ Fallback Mode (For Testing)
+When API Key is not configured or quota is exceeded:
+- **Text Generation**: Uses simulated answers based on document content
+- **Text Embedding**: Uses random vectors (similarity search still works)
+- **Functionality**: All features available, but answer quality is reduced
 
-### 配额限制
+### Quota Limits
 
-Gemini API 免费层限制：
-- **嵌入 API**：每日/每分钟有请求次数限制
-- **生成 API**：相对宽松的限制
-- 超出配额后会自动降级到模拟模式
+Gemini API free tier limits:
+- **Embedding API**: Daily/per-minute request limits
+- **Generation API**: Relatively generous limits
+- Automatically falls back to simulation mode when quota is exceeded
 
-**建议**：
-- 开发测试时使用降级模式节省配额
-- 演示和生产时使用正常模式
+**Recommendations**:
+- Use fallback mode for development and testing to save quota
+- Use normal mode for demos and production
 
-## 访问应用
+## Access Application
 
-- **前端应用**: http://localhost:8080
-- **后端API**: http://localhost:3000
-- **API文档**: http://localhost:3000/docs (FastAPI自动生成)
+- **Frontend Application**: http://localhost:8080
+- **Backend API**: http://localhost:3000
+- **API Documentation**: http://localhost:3000/docs (FastAPI auto-generated)
 
-## 📖 使用指南
+## 📖 Usage Guide
 
-### 方式一：文档问答模式
-1. 打开浏览器访问 http://localhost:8080
-2. 点击 "RAG" 导航到文档管理页面
-3. 上传 PDF 或 DOCX 文档（等待处理完成）
-4. 点击 "Chat" 导航到聊天页面
-5. 在左侧选择已上传的文档
-6. 在输入框中提问，系统会基于文档内容智能回答
+### Method 1: Document Q&A Mode
+1. Open browser and visit http://localhost:8080
+2. Click "RAG" to navigate to document management page
+3. Upload PDF or DOCX document (wait for processing to complete)
+4. Click "Chat" to navigate to chat page
+5. Select the uploaded document on the left
+6. Ask questions in the input box, and the system will intelligently answer based on document content
 
-### 方式二：普通对话模式
-1. 打开浏览器访问 http://localhost:8080
-2. 点击 "Chat" 导航到聊天页面
-3. 直接在输入框中提问（不选择文档）
-4. 系统会使用 Gemini AI 直接回答问题
+### Method 2: General Chat Mode
+1. Open browser and visit http://localhost:8080
+2. Click "Chat" to navigate to chat page
+3. Ask questions directly in the input box (without selecting a document)
+4. The system will use Gemini AI to answer questions directly
 
-### 💡 使用技巧
-- **文档问答**：适合需要基于特定文档内容的精确问答
-- **普通对话**：适合通用知识问答和自由对话
-- **查看来源**：文档问答模式下，回答会显示引用的原文片段
+### 💡 Usage Tips
+- **Document Q&A**: Suitable for precise Q&A based on specific document content
+- **General Chat**: Suitable for general knowledge Q&A and free conversation
+- **View Sources**: In document Q&A mode, answers show cited original text snippets
 
-## API接口
+## API Endpoints
 
-### 文档管理
-- `POST /api/documents/upload` - 上传文档
-- `GET /api/documents` - 获取所有文档
-- `GET /api/documents/{id}` - 获取单个文档
-- `DELETE /api/documents/{id}` - 删除文档
+### Document Management
+- `POST /api/documents/upload` - Upload document
+- `GET /api/documents` - Get all documents
+- `GET /api/documents/{id}` - Get single document
+- `DELETE /api/documents/{id}` - Delete document
 
-### 问答查询
-- `POST /api/query` - 发送问答请求
-  - 参数：`documentId` (可选), `query` (必需)
-  - `documentId` 为空时使用普通对话模式
-- `GET /api/query/history` - 获取查询历史
+### Query Q&A
+- `POST /api/query` - Send Q&A request
+  - Parameters: `documentId` (optional), `query` (required)
+  - When `documentId` is empty, uses general chat mode
+- `GET /api/query/history` - Get query history
 
-## 数据库设计
+## Database Design
 
-### 数据库Schema
+### Database Schema
 
-系统使用SQLite数据库，包含5个核心表：
+The system uses SQLite database with 5 core tables:
 
-#### 1. 文档表 (`documents`)
-存储上传文档的元数据信息：
+#### 1. Documents Table (`documents`)
+Stores metadata of uploaded documents:
 
-| 字段 | 类型 | 约束 | 说明 |
+| Field | Type | Constraints | Description |
 |------|------|------|------|
-| `id` | VARCHAR | PRIMARY KEY | 文档唯一标识符 (UUID) |
-| `original_name` | VARCHAR | NOT NULL | 原始文件名 |
-| `file_name` | VARCHAR | NOT NULL | 存储文件名 |
-| `file_path` | VARCHAR | NOT NULL | 文件存储路径 |
-| `mime_type` | VARCHAR | NOT NULL | 文件MIME类型 |
-| `size` | INTEGER | NOT NULL | 文件大小（字节） |
-| `upload_date` | DATETIME | DEFAULT NOW | 上传时间 |
-| `preview_text` | TEXT | NULL | 文档预览文本（前200字符） |
+| `id` | VARCHAR | PRIMARY KEY | Document unique identifier (UUID) |
+| `original_name` | VARCHAR | NOT NULL | Original filename |
+| `file_name` | VARCHAR | NOT NULL | Stored filename |
+| `file_path` | VARCHAR | NOT NULL | File storage path |
+| `mime_type` | VARCHAR | NOT NULL | File MIME type |
+| `size` | INTEGER | NOT NULL | File size (bytes) |
+| `upload_date` | DATETIME | DEFAULT NOW | Upload time |
+| `preview_text` | TEXT | NULL | Document preview text (first 200 characters) |
 
-#### 2. 文本块表 (`text_chunks`)
-存储文档分割后的文本片段：
+#### 2. Text Chunks Table (`text_chunks`)
+Stores text chunks after document splitting:
 
-| 字段 | 类型 | 约束 | 说明 |
+| Field | Type | Constraints | Description |
 |------|------|------|------|
-| `id` | VARCHAR | PRIMARY KEY | 文本块唯一标识符 (UUID) |
-| `document_id` | VARCHAR | NOT NULL, FK | 关联的文档ID |
-| `chunk_index` | INTEGER | NOT NULL | 文本块索引 |
-| `text` | TEXT | NOT NULL | 文本块内容 |
+| `id` | VARCHAR | PRIMARY KEY | Text chunk unique identifier (UUID) |
+| `document_id` | VARCHAR | NOT NULL, FK | Associated document ID |
+| `chunk_index` | INTEGER | NOT NULL | Text chunk index |
+| `text` | TEXT | NOT NULL | Text chunk content |
 
-#### 3. 嵌入向量表 (`embeddings`)
-存储文本块的向量表示（用于相似度搜索）：
+#### 3. Embeddings Table (`embeddings`)
+Stores vector representations of text chunks (for similarity search):
 
-| 字段 | 类型 | 约束 | 说明 |
+| Field | Type | Constraints | Description |
 |------|------|------|------|
-| `id` | VARCHAR | PRIMARY KEY | 嵌入向量唯一标识符 (UUID) |
-| `chunk_id` | VARCHAR | NOT NULL, FK, UNIQUE | 关联的文本块ID |
-| `vector` | JSON | NOT NULL | 384维嵌入向量数组 |
-| `created_at` | DATETIME | DEFAULT NOW | 创建时间 |
+| `id` | VARCHAR | PRIMARY KEY | Embedding vector unique identifier (UUID) |
+| `chunk_id` | VARCHAR | NOT NULL, FK, UNIQUE | Associated text chunk ID |
+| `vector` | JSON | NOT NULL | 384-dimensional embedding vector array |
+| `created_at` | DATETIME | DEFAULT NOW | Creation time |
 
-#### 4. 消息表 (`messages`)
-存储用户与AI的对话记录：
+#### 4. Messages Table (`messages`)
+Stores user-AI conversation records:
 
-| 字段 | 类型 | 约束 | 说明 |
+| Field | Type | Constraints | Description |
 |------|------|------|------|
-| `id` | VARCHAR | PRIMARY KEY | 消息唯一标识符 (UUID) |
-| `document_id` | VARCHAR | NOT NULL, FK | 关联的文档ID |
-| `content` | TEXT | NOT NULL | 消息内容 |
-| `role` | VARCHAR | NOT NULL | 消息角色 |
-| `timestamp` | DATETIME | DEFAULT NOW | 发送时间 |
-| `sources` | JSON | NULL | 引用来源（可选） |
+| `id` | VARCHAR | PRIMARY KEY | Message unique identifier (UUID) |
+| `document_id` | VARCHAR | NOT NULL, FK | Associated document ID |
+| `content` | TEXT | NOT NULL | Message content |
+| `role` | VARCHAR | NOT NULL | Message role |
+| `timestamp` | DATETIME | DEFAULT NOW | Send time |
+| `sources` | JSON | NULL | Citation sources (optional) |
 
-#### 5. 查询历史表 (`query_history`)
-存储所有问答的历史记录：
+#### 5. Query History Table (`query_history`)
+Stores all Q&A history records:
 
-| 字段 | 类型 | 约束 | 说明 |
+| Field | Type | Constraints | Description |
 |------|------|------|------|
-| `id` | INTEGER | PRIMARY KEY | 自增主键 |
-| `document_id` | VARCHAR | NULL, FK | 关联的文档ID（可为空） |
-| `query` | TEXT | NOT NULL | 用户问题 |
-| `answer` | TEXT | NOT NULL | AI回答 |
-| `timestamp` | DATETIME | DEFAULT NOW | 查询时间 |
-| `sources` | JSON | NULL | 引用来源（可选） |
+| `id` | INTEGER | PRIMARY KEY | Auto-increment primary key |
+| `document_id` | VARCHAR | NULL, FK | Associated document ID (nullable) |
+| `query` | TEXT | NOT NULL | User question |
+| `answer` | TEXT | NOT NULL | AI answer |
+| `timestamp` | DATETIME | DEFAULT NOW | Query time |
+| `sources` | JSON | NULL | Citation sources (optional) |
 
-### 数据关系图
+### Data Relationship Diagram
 ```mermaid
 erDiagram
     DOCUMENTS ||--o{ TEXT_CHUNKS : contains
@@ -337,88 +337,88 @@ erDiagram
 ```
 
 
-### 外键约束
+### Foreign Key Constraints
 
 - `text_chunks.document_id` → `documents.id` (ON DELETE CASCADE)
 - `embeddings.chunk_id` → `text_chunks.id` (ON DELETE CASCADE)
 - `messages.document_id` → `documents.id` (ON DELETE CASCADE)
 - `query_history.document_id` → `documents.id` (ON DELETE SET NULL)
 
-### 索引设计
+### Index Design
 
-- 所有主键自动创建索引
-- 外键字段创建索引以优化查询性能
+- All primary keys automatically create indexes
+- Foreign key fields create indexes to optimize query performance
 
-## 数据流程图
+## Data Flow Diagram
 
-### 文档处理流程
+### Document Processing Flow
 ```
-用户上传文档 (PDF/DOCX)
+User uploads document (PDF/DOCX)
          ↓
-   前端文件上传组件
+   Frontend file upload component
          ↓
 POST /api/documents/upload
          ↓
    document_service.py
          ↓
-   file_parser.py (解析文档)
+   file_parser.py (parse document)
          ↓
-   text_splitter.py (文本分块)
+   text_splitter.py (text chunking)
          ↓
    embedding_service.py
          ↓
-   生成向量嵌入 (模拟/Gemini API)
+   Generate vector embeddings (simulated/Gemini API)
          ↓
-   存储到 SQLite 数据库
-   (Document, TextChunk, Embedding 表)
+   Store to SQLite database
+   (Document, TextChunk, Embedding tables)
 ```
 
-### 问答查询流程
+### Query Q&A Flow
 ```
-用户输入问题
+User inputs question
          ↓
-   前端聊天组件
+   Frontend chat component
          ↓
 POST /api/query
          ↓
    rag_service.py
          ↓
    embedding_service.py
-   (生成问题的向量嵌入)
+   (generate question's vector embedding)
          ↓
    search_similar_chunks()
-   (向量相似度搜索)
+   (vector similarity search)
          ↓
-   检索相关文档片段
+   Retrieve relevant document chunks
          ↓
    generate_answer()
-   (模拟/Gemini API 生成回答)
+   (simulated/Gemini API generates answer)
          ↓
-   返回答案 + 引用来源
+   Return answer + citation sources
          ↓
-   存储查询历史到数据库
+   Store query history to database
          ↓
-   前端显示回答和来源
+   Frontend displays answer and sources
 ```
 
-## 文件与API交互图
+## File and API Interaction Diagram
 
-### 文档上传流程
+### Document Upload Flow
 
 ```mermaid
 graph TB
-    Start1["用户上传文档<br/>DocumentUpload.tsx"]
-    API1["API 客户端<br/>api.ts"]
+    Start1["User uploads document<br/>DocumentUpload.tsx"]
+    API1["API client<br/>api.ts"]
     EP1["POST /documents/upload<br/>documents.py"]
     
-    S1["保存文件到服务器<br/>document_service.py"]
-    S2["解析文件内容<br/>file_parser.py"]
-    S3["文本分块<br/>text_splitter.py"]
-    S4["生成向量嵌入<br/>embedding_service.py"]
-    S5["写入数据库<br/>crud.py"]
+    S1["Save file to server<br/>document_service.py"]
+    S2["Parse file content<br/>file_parser.py"]
+    S3["Text chunking<br/>text_splitter.py"]
+    S4["Generate vector embeddings<br/>embedding_service.py"]
+    S5["Write to database<br/>crud.py"]
     
     Gemini1["Gemini Embedding API<br/>embedding-001"]
-    DB1["数据库<br/>写入: documents, text_chunks, embeddings"]
+    DB1["Database<br/>Write: documents, text_chunks, embeddings"]
     
     Start1 --> API1
     API1 -->|FormData| EP1
@@ -426,9 +426,9 @@ graph TB
     S1 --> S2
     S2 --> S3
     S3 --> S4
-    S4 -.->|外部调用| Gemini1
+    S4 -.->|External call| Gemini1
     S4 --> S5
-    S5 -->|写入| DB1
+    S5 -->|Write| DB1
     
     style Start1 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
     style API1 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
@@ -442,54 +442,54 @@ graph TB
     style DB1 fill:#fce4ec,stroke:#c2185b,stroke-width:2px
 ```
 
-### 对话查询流程
+### Chat Query Flow
 
 ```mermaid
 graph TB
-    Start2["用户发起对话<br/>Chat.tsx"]
-    API2["API 客户端<br/>api.ts"]
+    Start2["User initiates chat<br/>Chat.tsx"]
+    API2["API client<br/>api.ts"]
     EP2["POST /query<br/>queries.py"]
     
-    Branch{"判断分支<br/>documentId 存在?<br/>rag_service.py"}
+    Branch{"Branch decision<br/>documentId exists?<br/>rag_service.py"}
     
-    Q1["文档问答模式"]
-    Q2["生成查询向量<br/>embedding_service.py"]
-    Q3["检索相似文本块<br/>embedding_service.py"]
-    Q4["构建上下文<br/>rag_service.py"]
+    Q1["Document Q&A mode"]
+    Q2["Generate query vector<br/>embedding_service.py"]
+    Q3["Retrieve similar text chunks<br/>embedding_service.py"]
+    Q4["Build context<br/>rag_service.py"]
     
-    Q_Chat["普通对话模式<br/>跳过 RAG 检索"]
+    Q_Chat["General chat mode<br/>Skip RAG retrieval"]
     
-    Q5["调用 LLM 生成回答<br/>rag_service.py"]
-    Q6["存储对话历史<br/>crud.py"]
+    Q5["Call LLM to generate answer<br/>rag_service.py"]
+    Q6["Store conversation history<br/>crud.py"]
     
-    Response["返回响应到前端"]
+    Response["Return response to frontend"]
     
     Gemini2["Gemini Embedding API<br/>embedding-001"]
     Gemini3["Gemini Generation API<br/>gemini-2.5-flash"]
     
-    DB2["数据库<br/>读取: embeddings, text_chunks<br/>写入: messages, query_history"]
+    DB2["Database<br/>Read: embeddings, text_chunks<br/>Write: messages, query_history"]
     
     Start2 --> API2
     API2 -->|JSON: query, docId| EP2
     EP2 --> Branch
     
-    Branch -->|有 documentId| Q1
+    Branch -->|Has documentId| Q1
     Q1 --> Q2
-    Q2 -.->|外部调用| Gemini2
+    Q2 -.->|External call| Gemini2
     Q2 --> Q3
-    Q3 -->|读取| DB2
+    Q3 -->|Read| DB2
     Q3 --> Q4
     Q4 --> Q5
     
-    Branch -->|无 documentId| Q_Chat
+    Branch -->|No documentId| Q_Chat
     Q_Chat --> Q5
     
-    Q5 -.->|外部调用| Gemini3
+    Q5 -.->|External call| Gemini3
     Q5 --> Q6
-    Q6 -->|写入| DB2
+    Q6 -->|Write| DB2
     Q6 --> Response
     Response -.->|JSON Response| API2
-    API2 -.->|展示结果| Start2
+    API2 -.->|Display result| Start2
     
     style Start2 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
     style API2 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px

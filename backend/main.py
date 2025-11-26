@@ -6,42 +6,42 @@ import uvicorn
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
-# 导入API路由
+# Import API routes
 from app.api import documents, queries
 
-# 导入数据库模型
+# Import database models
 from app.models.database import engine, Base, get_db
 from app.models import models
 
-# 加载环境变量
+# Load environment variables
 load_dotenv()
 
-# 创建数据库表
+# Create database tables
 Base.metadata.create_all(bind=engine)
 
-# 创建FastAPI应用
+# Create FastAPI application
 app = FastAPI(
     title="RAG API",
-    description="文档问答系统API",
+    description="Document Q&A System API",
     version="1.0.0"
 )
 
-# 配置CORS
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 在生产环境中应该限制为前端域名
+    allow_origins=["*"],  # Should be restricted to frontend domain in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 创建上传目录
+# Create upload directory
 os.makedirs("uploads", exist_ok=True)
 
-# 挂载静态文件
+# Mount static files
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
-# 注册API路由
+# Register API routes
 app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
 app.include_router(queries.router, prefix="/api/query", tags=["queries"])
 
@@ -51,7 +51,7 @@ async def root():
 
 @app.get("/db-test")
 async def db_test(db: Session = Depends(get_db)):
-    """测试数据库连接"""
+    """Test database connection"""
     try:
         # 尝试查询文档表
         docs = db.query(models.Document).limit(5).all()

@@ -1,64 +1,64 @@
 #!/bin/bash
 
-echo "🚀 Python 项目环境设置脚本"
+echo "🚀 Python Project Environment Setup Script"
 echo "=========================="
 
-# 检查 Python 版本
-echo "📋 检查 Python 版本..."
+# Check Python version
+echo "📋 Checking Python version..."
 python --version
 
-# 删除旧的虚拟环境（如果存在）
+# Remove old virtual environment (if exists)
 if [ -d "venv" ]; then
-    echo "🗑️  删除旧的虚拟环境..."
+    echo "🗑️  Removing old virtual environment..."
     rm -rf venv
 fi
 
-# 创建新的虚拟环境
-echo "📦 创建虚拟环境..."
+# Create new virtual environment
+echo "📦 Creating virtual environment..."
 python -m venv venv
 
-# 激活虚拟环境
-echo "🔄 激活虚拟环境..."
+# Activate virtual environment
+echo "🔄 Activating virtual environment..."
 source venv/bin/activate
 
-# 升级 pip
-echo "⬆️  升级 pip..."
+# Upgrade pip
+echo "⬆️  Upgrading pip..."
 pip install --upgrade pip
 
-# 安装依赖（分批安装，避免编译问题）
-echo "📚 安装核心依赖..."
+# Install dependencies (batch installation to avoid compilation issues)
+echo "📚 Installing core dependencies..."
 pip install fastapi uvicorn python-multipart pydantic python-dotenv sqlalchemy alembic
 
-echo "📄 安装文档处理依赖..."
+echo "📄 Installing document processing dependencies..."
 pip install PyPDF2 python-docx
 
-echo "🤖 安装 AI 相关依赖..."
+echo "🤖 Installing AI-related dependencies..."
 pip install google-generativeai langchain langchain-community
 
-echo "🔢 安装数学计算依赖（可能需要较长时间）..."
+echo "🔢 Installing math computation dependencies (may take some time)..."
 pip install numpy scikit-learn
 
-# 创建必要的目录
-echo "📁 创建必要目录..."
+# Create necessary directories
+echo "📁 Creating necessary directories..."
 mkdir -p uploads
 
-# 初始化数据库
-echo "🗄️  初始化数据库..."
+# Initialize database
+echo "🗄️  Initializing database..."
 python -c "
 try:
     from app.models.database import Base, engine
     Base.metadata.create_all(bind=engine)
-    print('✅ 数据库初始化成功！')
+    print('✅ Database initialized successfully!')
 except Exception as e:
-    print(f'❌ 数据库初始化失败: {e}')
+    print(f'❌ Database initialization failed: {e}')
 "
 
 echo ""
-echo "🎉 环境设置完成！"
+echo "🎉 Environment setup complete!"
 echo ""
-echo "使用以下命令启动项目："
+echo "Use the following command to start the project:"
 echo "  source venv/bin/activate"
 echo "  python main.py"
 echo ""
-echo "或者直接运行："
+echo "Or run directly:"
 echo "  ./run.sh"

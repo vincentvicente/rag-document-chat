@@ -40,15 +40,15 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps) {
   };
 
   const handleFileUpload = async (file: File) => {
-    // 检查文件类型
+    // Check file type
     if (!['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type)) {
-      setError('只支持PDF和DOCX文件格式');
+      setError('Only PDF and DOCX file formats are supported');
       return;
     }
 
-    // 检查文件大小（10MB限制）
+    // Check file size (10MB limit)
     if (file.size > 10 * 1024 * 1024) {
-      setError('文件大小不能超过10MB');
+      setError('File size cannot exceed 10MB');
       return;
     }
 
@@ -58,17 +58,17 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps) {
 
     try {
       const result = await documentApi.uploadDocument(file);
-      setSuccess(`文件 ${file.name} 上传成功！`);
+      setSuccess(`File ${file.name} uploaded successfully!`);
       
       if (onUploadSuccess) {
         onUploadSuccess(result);
       }
     } catch (err) {
-      setError(`上传失败: ${err instanceof Error ? err.message : '未知错误'}`);
+      setError(`Upload failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setIsUploading(false);
       
-      // 重置文件输入
+      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -82,9 +82,9 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps) {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>上传文档</CardTitle>
+        <CardTitle>Upload Document</CardTitle>
         <CardDescription>
-          上传PDF或DOCX文件以便进行问答
+          Upload PDF or DOCX files for Q&A
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -124,18 +124,18 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps) {
             </div>
             <div className="space-y-1 text-center">
               <p className="text-sm text-gray-500">
-                拖放文件到此处，或者
+                Drag and drop files here, or
               </p>
               <Button
                 variant="outline"
                 onClick={handleButtonClick}
                 disabled={isUploading}
               >
-                {isUploading ? '上传中...' : '浏览文件'}
+                {isUploading ? 'Uploading...' : 'Browse Files'}
               </Button>
             </div>
             <p className="text-xs text-gray-500">
-              支持PDF和DOCX格式，最大10MB
+              Supports PDF and DOCX formats, max 10MB
             </p>
           </div>
         </div>
@@ -154,7 +154,7 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps) {
       </CardContent>
       <CardFooter className="flex justify-between">
         <p className="text-xs text-gray-500">
-          上传的文档将用于RAG系统进行问答
+          Uploaded documents will be used for RAG system Q&A
         </p>
       </CardFooter>
     </Card>

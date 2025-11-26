@@ -1,23 +1,23 @@
 #!/bin/bash
 
-echo "🚀 启动 RAG 后端服务..."
+echo "🚀 Starting RAG backend service..."
 
-# 激活虚拟环境
+# Activate virtual environment
 if [ -d "venv" ]; then
     source venv/bin/activate
-    echo "✅ 虚拟环境已激活"
+    echo "✅ Virtual environment activated"
 else
-    echo "❌ 未找到虚拟环境，请先运行 ./setup.sh"
+    echo "❌ Virtual environment not found, please run ./setup.sh first"
     exit 1
 fi
 
-# 检查依赖是否安装
+# Check if dependencies are installed
 python -c "import fastapi, uvicorn, sqlalchemy" 2>/dev/null
 if [ $? -ne 0 ]; then
-    echo "❌ 依赖未正确安装，请先运行 ./setup.sh"
+    echo "❌ Dependencies not installed correctly, please run ./setup.sh first"
     exit 1
 fi
 
-# 启动服务
-echo "🌟 在 http://localhost:3000 启动服务..."
+# Start service
+echo "🌟 Starting service at http://localhost:3000..."
 python main.py

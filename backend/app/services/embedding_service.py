@@ -10,24 +10,24 @@ from dotenv import load_dotenv
 from app.utils.text_splitter import split_text
 from app.models import crud, schemas
 
-# 加载环境变量
+# Load environment variables
 load_dotenv()
 
-# 将文本分块并生成嵌入向量
+# Split text into chunks and generate embeddings
 def process_and_store_embeddings(db: Session, document_id: str, text: str) -> Dict[str, Any]:
     try:
-        # 将文本分成块 - 使用AI Buddy项目的方法
-        # 首先按页面分割（假设文本中的双换行符表示页面分隔）
+        # Split text into chunks - using AI Buddy project method
+        # First split by pages (assuming triple newlines indicate page separation)
         pages = text.split('\n\n\n')
         pages = [page for page in pages if page.strip()]
         chunks = []
         
-        # 将每页分为上下两部分
+        # Split each page into upper and lower halves
         for page in pages:
             if not page.strip():
                 continue
             
-            # 将页面分为上下两部分
+            # Split page into upper and lower halves
             mid_point = len(page) // 2
             upper_half = page[:mid_point].strip()
             lower_half = page[mid_point:].strip()
@@ -37,24 +37,24 @@ def process_and_store_embeddings(db: Session, document_id: str, text: str) -> Di
             if lower_half:
                 chunks.append(lower_half)
         
-        # 如果分块后的文本太少，使用原始分块方法
+        # If too few chunks after splitting, use original chunking method
         if len(chunks) < 5:
-            print("页面分块产生的块太少，使用原始分块方法")
+            print("Page chunking produced too few chunks, using original chunking method")
             original_chunks = split_text(text)
             chunks.extend(original_chunks)
         
-        print(f"文档分成了 {len(chunks)} 个文本块")
+        print(f"Document split into {len(chunks)} text chunks")
         
-        # 批处理生成嵌入 - 借鉴AI Buddy项目的批处理方法
-        batch_size = 100  # 与AI Buddy项目保持一致
+        # Batch process embeddings - inspired by AI Buddy project batch processing
+        batch_size = 100  # Consistent with AI Buddy project
         
         for i in range(0, len(chunks), batch_size):
             batch = chunks[i:i + min(batch_size, len(chunks) - i)]
-            print(f"处理批次 {i//batch_size + 1} / {(len(chunks) + batch_size - 1)//batch_size}")
+            print(f"Processing batch {i//batch_size + 1} / {(len(chunks) + batch_size - 1)//batch_size}")
             
-            # 为批次中的每个块生成嵌入并存储到数据库
+            # Generate embeddings for each chunk in the batch and store to database
             for j, chunk_text in enumerate(batch):
-                # 创建文本块
+                # Create text chunk
                 chunk = schemas.TextChunkCreate(
                     document_id=document_id,
                     text=chunk_text,
@@ -62,10 +62,10 @@ def process_and_store_embeddings(db: Session, document_id: str, text: str) -> Di
                 )
                 db_chunk = crud.create_text_chunk(db, chunk)
                 
-                # 生成嵌入向量
+                # Generate embedding vector
                 embedding_vector = generate_embedding(chunk_text)
                 
-                # 存储嵌入向量
+                # Store embedding vector
                 embedding = schemas.EmbeddingCreate(
                     chunk_id=db_chunk.id,
                     vector=embedding_vector
@@ -77,78 +77,78 @@ def process_and_store_embeddings(db: Session, document_id: str, text: str) -> Di
             "chunk_count": len(chunks)
         }
     except Exception as e:
-        print(f"处理嵌入时出错: {str(e)}")
-        raise Exception(f"处理嵌入失败: {str(e)}")
+        print(f"Error processing embeddings: {str(e)}")
+        raise Exception(f"Failed to process embeddings: {str(e)}")
 
-# 生成文本的嵌入向量
+# Generate embedding vector for text
 def generate_embedding(text: str) -> List[float]:
     try:
-        # 从环境变量读取API密钥
+        # Read API key from environment variables
         api_key = os.getenv("GEMINI_API_KEY")
         
-        # 如果密钥可用，使用Gemini API
+        # If key is available, use Gemini API
         if api_key:
             try:
                 import google.generativeai as genai
                 
-                # 配置API密钥
+                # Configure API key
                 genai.configure(api_key=api_key)
                 
-                # 使用Gemini的嵌入模型
+                # Use Gemini's embedding model
                 embedding_model = 'models/embedding-001'
                 
-                # 生成嵌入
+                # Generate embedding
                 result = genai.embed_content(
                     model=embedding_model,
                     content=text,
                     task_type="retrieval_document"
                 )
                 
-                # 返回嵌入向量
+                # Return embedding vector
                 return result["embedding"]
                 
             except Exception as api_error:
-                print(f"Gemini API嵌入生成失败，使用模拟嵌入: {str(api_error)}")
+                print(f"Gemini API embedding generation failed, using mock embedding: {str(api_error)}")
         else:
-            print("警告: GEMINI_API_KEY 未设置，使用模拟嵌入")
+            print("Warning: GEMINI_API_KEY is not set, using mock embedding")
         
-        # 模拟的嵌入向量（如果API调用失败或没有API密钥）
+        # Mock embedding vector (if API call failed or no API key)
         return np.random.normal(0, 0.1, 384).tolist()
     except Exception as e:
-        print(f"生成嵌入时出错: {str(e)}")
+        print(f"Error generating embedding: {str(e)}")
         raise e
 
-# 搜索相关的文本块
+# Search for similar text chunks
 def search_similar_chunks(db: Session, document_id: str, query: str, limit: int = 4) -> List[Dict[str, Any]]:
     try:
         if not document_id:
-            # 如果没有指定文档ID，搜索所有文档
+            # If no document ID specified, search all documents
             return search_all_documents(db, query, limit)
         
-        # 获取文档的所有嵌入向量
+        # Get all embeddings for the document
         embeddings = crud.get_document_embeddings(db, document_id)
         
         if not embeddings:
-            raise Exception(f"未找到文档ID的嵌入: {document_id}")
+            raise Exception(f"Embeddings not found for document ID: {document_id}")
         
-        # 生成查询的嵌入
+        # Generate query embedding
         query_embedding = generate_embedding(query)
         
-        # 使用欧几里得距离计算相似度 - 借鉴AI Buddy项目
+        # Calculate similarity using Euclidean distance - inspired by AI Buddy project
         results = []
         for item in embeddings:
             distance = calculate_euclidean_distance(query_embedding, item["vector"])
             results.append({
                 **item,
                 "distance": distance,
-                "score": 0  # 将在后面计算
+                "score": 0  # Will be calculated later
             })
         
-        # 按距离排序（距离越小越相似）
+        # Sort by distance (smaller distance means more similar)
         results.sort(key=lambda x: x["distance"])
         results = results[:limit]
         
-        # 将距离转换为分数（1 - 归一化距离）
+        # Convert distance to score (1 - normalized distance)
         max_distance = max(result["distance"] for result in results) if results else 1
         for item in results:
             item["score"] = 1 - (item["distance"] / max_distance)
@@ -159,46 +159,46 @@ def search_similar_chunks(db: Session, document_id: str, query: str, limit: int 
             "distance": item["distance"]
         } for item in results]
     except Exception as e:
-        print(f"搜索相似块时出错: {str(e)}")
+        print(f"Error searching similar chunks: {str(e)}")
         raise e
 
-# 计算欧几里得距离 - 从AI Buddy项目借鉴
+# Calculate Euclidean distance - inspired by AI Buddy project
 def calculate_euclidean_distance(vec_a: List[float], vec_b: List[float]) -> float:
     if len(vec_a) != len(vec_b):
-        raise ValueError("向量维度必须相同")
+        raise ValueError("Vector dimensions must be the same")
     
     return np.sqrt(np.sum(np.square(np.array(vec_a) - np.array(vec_b))))
 
-# 搜索所有文档
+# Search all documents
 def search_all_documents(db: Session, query: str, limit: int) -> List[Dict[str, Any]]:
-    # 获取所有文档
+    # Get all documents
     documents = crud.get_all_documents(db)
     
     all_results = []
     for document in documents:
         try:
-            # 搜索每个文档中的相似块
-            similar_chunks = search_similar_chunks(db, document.id, query, limit=2)  # 每个文档取2个最相似的块
+            # Search similar chunks in each document
+            similar_chunks = search_similar_chunks(db, document.id, query, limit=2)  # Take 2 most similar chunks per document
             
-            # 添加文档ID
+            # Add document ID
             for chunk in similar_chunks:
                 chunk["document_id"] = document.id
             
             all_results.extend(similar_chunks)
         except Exception as e:
-            print(f"搜索文档 {document.id} 时出错: {str(e)}")
+            print(f"Error searching document {document.id}: {str(e)}")
     
-    # 按相似度排序
+    # Sort by similarity
     all_results.sort(key=lambda x: x["score"], reverse=True)
     
-    # 返回前limit个结果
+    # Return top limit results
     return all_results[:limit]
 
-# 删除文档的嵌入
+# Delete document embeddings
 def delete_embeddings(db: Session, document_id: str) -> bool:
-    # 获取文档的所有文本块
+    # Get all text chunks for the document
     chunks = crud.get_document_chunks(db, document_id)
     
-    # 删除每个文本块的嵌入（通过级联删除自动处理）
-    # 删除所有文本块（通过级联删除自动处理嵌入）
+    # Delete embeddings for each text chunk (handled automatically by cascade delete)
+    # Delete all text chunks (embeddings handled automatically by cascade delete)
     return crud.delete_document_chunks(db, document_id) > 0

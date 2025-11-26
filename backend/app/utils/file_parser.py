@@ -4,7 +4,7 @@ import PyPDF2
 from PyPDF2 import PdfReader
 import docx
 
-# 解析文件内容
+# Parse file content
 def parse_file(file_path: str, extension: str) -> str:
     try:
         extension = extension.lower()
@@ -13,12 +13,12 @@ def parse_file(file_path: str, extension: str) -> str:
         elif extension == '.docx':
             return parse_docx(file_path)
         else:
-            raise ValueError(f"不支持的文件类型: {extension}")
+            raise ValueError(f"Unsupported file type: {extension}")
     except Exception as e:
-        print(f"解析文件时出错: {str(e)}")
-        raise Exception(f"解析文件失败: {str(e)}")
+        print(f"Error parsing file: {str(e)}")
+        raise Exception(f"Failed to parse file: {str(e)}")
 
-# 解析PDF文件 - 改进版，借鉴AI Buddy项目的方法
+# Parse PDF file - Improved version, inspired by AI Buddy project
 def parse_pdf(file_path: str) -> str:
     try:
         with open(file_path, 'rb') as file:
@@ -31,15 +31,15 @@ def parse_pdf(file_path: str) -> str:
                     if page_text.strip():
                         pages.append(page_text)
                 except Exception as e:
-                    print(f"解析PDF第{page_num+1}页时出错: {str(e)}")
+                    print(f"Error parsing PDF page {page_num+1}: {str(e)}")
             
-            # 将页面用三个换行符连接，便于后续处理时识别页面边界
+            # Join pages with triple newlines to help identify page boundaries in subsequent processing
             return '\n\n\n'.join(pages)
     except Exception as e:
-        print(f"解析PDF文件时出错: {str(e)}")
+        print(f"Error parsing PDF file: {str(e)}")
         raise e
 
-# 解析DOCX文件 - 改进版
+# Parse DOCX file - Improved version
 def parse_docx(file_path: str) -> str:
     try:
         doc = docx.Document(file_path)
@@ -50,9 +50,9 @@ def parse_docx(file_path: str) -> str:
             if text:
                 paragraphs.append(text)
         
-        # 将段落用双换行符连接，便于后续处理
+        # Join paragraphs with double newlines for subsequent processing
         return '\n\n'.join(paragraphs)
     except Exception as e:
-        print(f"解析DOCX文件时出错: {str(e)}")
+        print(f"Error parsing DOCX file: {str(e)}")
         raise e
 

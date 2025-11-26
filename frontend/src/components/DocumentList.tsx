@@ -31,7 +31,7 @@ export function DocumentList({ onDocumentDeleted }: DocumentListProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 获取所有文档
+  // Get all documents
   const fetchDocuments = async () => {
     try {
       setIsLoading(true);
@@ -40,7 +40,7 @@ export function DocumentList({ onDocumentDeleted }: DocumentListProps) {
       setDocuments(docs);
     } catch (error) {
       console.error('Failed to fetch documents:', error);
-      setError('获取文档列表失败');
+      setError('Failed to get document list');
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +50,7 @@ export function DocumentList({ onDocumentDeleted }: DocumentListProps) {
     fetchDocuments();
   }, []);
 
-  // 删除文档
+  // Delete document
   const handleDeleteDocument = async (id: number) => {
     try {
       await documentApi.deleteDocument(id.toString());
@@ -61,28 +61,28 @@ export function DocumentList({ onDocumentDeleted }: DocumentListProps) {
       }
     } catch (error) {
       console.error('Failed to delete document:', error);
-      setError('删除文档失败');
+      setError('Failed to delete document');
     }
   };
 
-  // 格式化日期
+  // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleString('zh-CN');
+    return date.toLocaleString('en-US');
   };
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>文档列表</CardTitle>
+        <CardTitle>Documents</CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="text-center py-4">加载中...</div>
+          <div className="text-center py-4">Loading...</div>
         ) : error ? (
           <div className="text-center text-red-500 py-4">{error}</div>
         ) : documents.length === 0 ? (
-          <div className="text-center text-gray-500 py-4">暂无文档</div>
+          <div className="text-center text-gray-500 py-4">No documents</div>
         ) : (
           <div className="space-y-4">
             {documents.map((doc) => (
@@ -93,7 +93,7 @@ export function DocumentList({ onDocumentDeleted }: DocumentListProps) {
                 <div>
                   <h3 className="font-medium">{doc.originalName}</h3>
                   <p className="text-sm text-gray-500">
-                    上传时间: {formatDate(doc.uploadDate)}
+                    Upload time: {formatDate(doc.uploadDate)}
                   </p>
                   <p className="text-xs text-gray-400 mt-1 line-clamp-2">
                     {doc.previewText}
@@ -107,17 +107,17 @@ export function DocumentList({ onDocumentDeleted }: DocumentListProps) {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>确认删除</AlertDialogTitle>
+                      <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
                       <AlertDialogDescription>
-                        您确定要删除文档 "{doc.originalName}" 吗？此操作无法撤销。
+                        Are you sure you want to delete document "{doc.originalName}"? This action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>取消</AlertDialogCancel>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction 
                         onClick={() => handleDeleteDocument(doc.id)}
                       >
-                        删除
+                        Delete
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

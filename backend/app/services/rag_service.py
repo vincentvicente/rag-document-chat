@@ -16,39 +16,39 @@ load_dotenv()
 # Configure the Gemini API key
 api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
-    print("警告: GEMINI_API_KEY 未在 .env 文件中设置。")
+    print("Warning: GEMINI_API_KEY is not set in .env file.")
 else:
     try:
         genai.configure(api_key=api_key)
     except Exception as e:
-        print(f"Gemini API 密钥配置失败: {e}")
+        print(f"Failed to configure Gemini API key: {e}")
 
-# 处理查询
+# Process query
 def process_query(db: Session, document_id: str, query: str) -> Dict[str, Any]:
     try:
-        # 如果没有提供文档ID，使用直接对话模式（不使用RAG）
+        # If no document ID provided, use direct chat mode (without RAG)
         if not document_id:
             try:
-                # 直接与Gemini对话（不使用RAG）
+                # Direct chat with Gemini (without RAG)
                 answer = generate_answer_without_context(query)
                 return {
                     "answer": answer,
                     "sources": []
                 }
             except Exception as e:
-                print(f"Gemini API调用失败: {str(e)}")
+                print(f"Gemini API call failed: {str(e)}")
                 return {
-                    "answer": "抱歉，我现在无法回答您的问题。请稍后再试。",
+                    "answer": "Sorry, I'm unable to answer your question right now. Please try again later.",
                     "sources": []
                 }
         
-        # 搜索相关文本块
+        # Search for relevant text chunks
         similar_chunks = search_similar_chunks(db, document_id, query)
         
         if not similar_chunks:
-            no_info_answer = "我找不到与您问题相关的信息。"
+            no_info_answer = "I couldn't find information related to your question."
             
-            # 如果有文档ID，添加消息到数据库
+            # If document ID exists, add message to database
             if document_id:
                 message = schemas.MessageCreate(
                     document_id=document_id,
@@ -57,7 +57,7 @@ def process_query(db: Session, document_id: str, query: str) -> Dict[str, Any]:
                 )
                 crud.create_message(db, message)
                 
-                # 添加助手消息
+                # Add assistant message
                 assistant_message = schemas.MessageCreate(
                     document_id=document_id,
                     content=no_info_answer,
@@ -66,7 +66,7 @@ def process_query(db: Session, document_id: str, query: str) -> Dict[str, Any]:
                 )
                 crud.create_message(db, assistant_message)
             
-            # 记录查询历史
+            # Record query history
             crud.create_query_history(db, document_id, query, no_info_answer, [])
             
             return {
@@ -74,19 +74,19 @@ def process_query(db: Session, document_id: str, query: str) -> Dict[str, Any]:
                 "sources": []
             }
         
-        # 构建上下文
+        # Build context
         context = "\n\n".join([chunk["text"] for chunk in similar_chunks])
         
-        # 尝试使用LLM生成回答，如果失败则使用模拟回答
+        # Try to use LLM to generate answer, fallback to mock answer if failed
         try:
             answer = generate_answer(query, context)
         except Exception as e:
-            print(f"LLM API调用失败，使用模拟回答: {str(e)}")
+            print(f"LLM API call failed, using mock answer: {str(e)}")
             answer = generate_mock_answer(query, context, similar_chunks)
         
-        # 如果有文档ID，添加消息到数据库
+        # If document ID exists, add message to database
         if document_id:
-            # 添加用户消息
+            # Add user message
             user_message = schemas.MessageCreate(
                 document_id=document_id,
                 content=query,
@@ -94,7 +94,7 @@ def process_query(db: Session, document_id: str, query: str) -> Dict[str, Any]:
             )
             crud.create_message(db, user_message)
             
-            # 添加助手消息
+            # Add assistant message
             assistant_message = schemas.MessageCreate(
                 document_id=document_id,
                 content=answer,
@@ -107,7 +107,7 @@ def process_query(db: Session, document_id: str, query: str) -> Dict[str, Any]:
             )
             crud.create_message(db, assistant_message)
         
-        # 记录查询历史
+        # Record query history
         crud.create_query_history(
             db, 
             document_id, 
@@ -127,90 +127,90 @@ def process_query(db: Session, document_id: str, query: str) -> Dict[str, Any]:
             } for chunk in similar_chunks]
         }
     except Exception as e:
-        print(f"处理查询时出错: {str(e)}")
+        print(f"Error processing query: {str(e)}")
         return {
-            "answer": f"处理您的问题时出现了错误，但这是测试模式下的模拟回答。错误: {str(e)}",
+            "answer": f"An error occurred while processing your question. This is a mock answer in test mode. Error: {str(e)}",
             "sources": []
         }
 
-# 生成模拟回答 (用于测试，不需要API密钥)
+# Generate mock answer (for testing, no API key required)
 def generate_mock_answer(query: str, context: str, chunks: List[Dict[str, Any]]) -> str:
-    print("使用模拟回答模式 (测试用)")
+    print("Using mock answer mode (for testing)")
     
-    # 从chunks中提取一些文本作为回答的基础
+    # Extract some text from chunks as the basis for the answer
     first_chunk = chunks[0]["text"] if chunks else ""
     second_chunk = chunks[1]["text"] if len(chunks) > 1 else ""
     
-    # 根据查询内容生成不同的模拟回答
-    if "什么" in query or "是什么" in query:
-        return f"根据文档内容，这是关于{first_chunk[:30]}的信息。文档中提到：{first_chunk[:100]}..."
-    elif "如何" in query or "怎么" in query:
-        return f"文档中关于这个问题的说明是：{first_chunk[:120]}... 您可以按照以上步骤操作。"
-    elif "为什么" in query:
-        second_part = f"另外还提到：{second_chunk[:50]}..." if second_chunk else ""
-        return f"根据文档解释，原因是：{first_chunk[:100]}... {second_part}"
+    # Generate different mock answers based on query content
+    if "what" in query.lower() or "is" in query.lower():
+        return f"Based on the document content, this is information about {first_chunk[:30]}. The document mentions: {first_chunk[:100]}..."
+    elif "how" in query.lower():
+        return f"The document explains this as follows: {first_chunk[:120]}... You can follow these steps."
+    elif "why" in query.lower():
+        second_part = f"It also mentions: {second_chunk[:50]}..." if second_chunk else ""
+        return f"According to the document, the reason is: {first_chunk[:100]}... {second_part}"
     else:
-        return f"您询问的是关于\"{query}\"的问题。文档中相关的内容是：{first_chunk[:150]}... 这是测试模式下的模拟回答，没有使用实际的AI生成。"
+        return f"You asked about \"{query}\". The relevant content in the document is: {first_chunk[:150]}... This is a mock answer in test mode, without actual AI generation."
 
-# 直接与Gemini对话（不使用上下文/RAG）
+# Direct chat with Gemini (without context/RAG)
 def generate_answer_without_context(query: str) -> str:
     try:
-        # 检查API密钥是否已配置
+        # Check if API key is configured
         if not api_key:
-            raise ValueError("GEMINI_API_KEY 未配置")
+            raise ValueError("GEMINI_API_KEY is not configured")
             
-        # 创建模型
+        # Create model
         model = genai.GenerativeModel('gemini-2.5-flash')
         
-        # 创建简单的对话提示
+        # Create simple chat prompt
         prompt = f"""You are a helpful AI assistant. Please answer the user's question in a natural and friendly way.
 
 Question: {query}
 """
         
-        # 生成回答
+        # Generate answer
         response = model.generate_content(prompt)
         
-        # 返回生成的文本
+        # Return generated text
         return response.text
     except Exception as e:
-        print(f"生成无上下文回答时出错: {str(e)}")
+        print(f"Error generating answer without context: {str(e)}")
         raise e
 
-# 使用LLM生成回答 (需要API密钥)
+# Use LLM to generate answer (requires API key)
 def generate_answer(query: str, context: str) -> str:
     try:
-        # 检查API密钥是否已配置
+        # Check if API key is configured
         if not api_key:
-            raise ValueError("GEMINI_API_KEY 未配置，无法调用LLM。")
+            raise ValueError("GEMINI_API_KEY is not configured, cannot call LLM.")
             
-        # 创建模型
+        # Create model
         model = genai.GenerativeModel('gemini-2.5-flash')
         
-        # 创建提示
-        prompt_template = """你是一个专业的文档问答助手。请根据提供的上下文回答用户的问题。
-        如果上下文中没有相关信息，请直接说明你无法回答该问题。
-        不要编造信息，只使用提供的上下文。
-        尽量提供简洁、准确的回答。
+        # Create prompt
+        prompt_template = """You are a professional document Q&A assistant. Please answer the user's question based on the provided context.
+        If there is no relevant information in the context, please state that you cannot answer the question.
+        Do not make up information, only use the provided context.
+        Try to provide concise and accurate answers.
         
-        上下文：
+        Context:
         {context}
         
-        问题：{query}
+        Question: {query}
         """
         
         prompt = prompt_template.format(context=context, query=query)
         
-        # 生成回答
+        # Generate answer
         response = model.generate_content(prompt)
         
-        # 返回生成的文本
+        # Return generated text
         return response.text
     except Exception as e:
-        print(f"生成回答时出错: {str(e)}")
+        print(f"Error generating answer: {str(e)}")
         raise e
 
-# 获取查询历史
+# Get query history
 def get_query_history(db: Session, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
     history_items = crud.get_query_history(db, skip, limit)
     
@@ -222,7 +222,7 @@ def get_query_history(db: Session, skip: int = 0, limit: int = 100) -> List[Dict
         "timestamp": item.timestamp
     } for item in history_items]
 
-# 获取ChatBot
+# Get ChatBot
 def get_chat_bot(db: Session, document_id: str) -> Optional[Dict[str, Any]]:
     document = crud.get_document(db, document_id)
     if not document:
@@ -243,7 +243,7 @@ def get_chat_bot(db: Session, document_id: str) -> Optional[Dict[str, Any]]:
         "created": document.upload_date
     }
 
-# 获取所有ChatBot
+# Get all ChatBots
 def get_all_chat_bots(db: Session) -> List[Dict[str, Any]]:
     documents = crud.get_all_documents(db)
     

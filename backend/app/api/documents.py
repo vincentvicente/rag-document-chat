@@ -17,33 +17,33 @@ from app.services.document_service import (
 
 router = APIRouter()
 
-# 上传文档
+# Upload document
 @router.post("/upload")
 async def upload_document(
     background_tasks: BackgroundTasks,
     document: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    # 验证文件类型
+    # Validate file type
     allowed_types = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
     if document.content_type not in allowed_types:
-        raise HTTPException(status_code=400, detail="只支持PDF和DOCX文件")
+        raise HTTPException(status_code=400, detail="Only PDF and DOCX files are supported")
     
-    # 验证文件大小
-    # FastAPI会将文件缓存到内存，所以我们可以检查文件大小
+    # Validate file size
+    # FastAPI caches files to memory, so we can check file size
     file_size = 0
     while True:
         chunk = await document.read(1024)
         if not chunk:
             break
         file_size += len(chunk)
-        if file_size > 10 * 1024 * 1024:  # 10MB限制
-            raise HTTPException(status_code=400, detail="文件大小不能超过10MB")
+        if file_size > 10 * 1024 * 1024:  # 10MB limit
+            raise HTTPException(status_code=400, detail="File size cannot exceed 10MB")
     
-    # 重置文件指针
+    # Reset file pointer
     await document.seek(0)
     
-    # 保存文件
+    # Save file
     file_id = str(uuid.uuid4())
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     filename = f"{timestamp}_{file_id}_{document.filename}"
@@ -54,7 +54,7 @@ async def upload_document(
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(document.file, buffer)
     
-    # 后台处理文档
+    # Process document in background
     file_info = {
         "id": file_id,
         "original_name": document.filename,
@@ -66,13 +66,13 @@ async def upload_document(
     }
     
     try:
-        # 同步处理文档，因为我们需要返回处理结果
+        # Process document synchronously because we need to return processing results
         result = process_document(db, file_info)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# 获取所有文档
+# Get all documents
 @router.get("/")
 async def get_documents(db: Session = Depends(get_db)):
     try:
@@ -81,18 +81,18 @@ async def get_documents(db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# 获取单个文档
+# Get single document
 @router.get("/{document_id}")
 async def get_document(document_id: str, db: Session = Depends(get_db)):
     document = get_document_by_id(db, document_id)
     if not document:
-        raise HTTPException(status_code=404, detail="文档未找到")
+        raise HTTPException(status_code=404, detail="Document not found")
     return document
 
-# 删除文档
+# Delete document
 @router.delete("/{document_id}")
 async def remove_document(document_id: str, db: Session = Depends(get_db)):
     success = delete_document(db, document_id)
     if not success:
-        raise HTTPException(status_code=404, detail="文档未找到")
-    return {"message": "文档删除成功"}
+        raise HTTPException(status_code=404, detail="Document not found")
+    return {"message": "Document deleted successfully"}

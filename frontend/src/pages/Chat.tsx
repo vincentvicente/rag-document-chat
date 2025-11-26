@@ -31,7 +31,7 @@ const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      content: "你好！我是你的AI学习助手。我可以帮助你解答问题、制定学习计划，或者基于你上传的文档回答问题。有什么我可以帮助你的吗？",
+      content: "Hello! I'm your AI learning assistant. I can help you answer questions, create study plans, or answer questions based on your uploaded documents. How can I help you?",
       role: "assistant",
       timestamp: new Date(),
     },
@@ -44,7 +44,7 @@ const Chat = () => {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // 获取所有文档
+  // Get all documents
   useEffect(() => {
     fetchDocuments();
   }, []);
@@ -83,7 +83,7 @@ const Chat = () => {
     setIsLoading(true);
 
     try {
-      // 在文档模式和普通聊天模式下都调用 Gemini API
+      // Call Gemini API in both document mode and general chat mode
       const response = await queryApi.sendQuery(
         isDocumentMode && selectedDocument ? selectedDocument : null, 
         input
@@ -103,7 +103,7 @@ const Chat = () => {
       
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: '抱歉，处理您的问题时出现了错误。请稍后再试。',
+        content: 'Sorry, an error occurred while processing your question. Please try again later.',
         role: "assistant",
         timestamp: new Date(),
       };
@@ -127,10 +127,10 @@ const Chat = () => {
     setSelectedDocument(document.id.toString());
     setIsDocumentMode(true);
     
-    // 添加系统消息通知用户文档上传成功
+    // Add system message to notify user of successful upload
     const systemMessage: Message = {
       id: Date.now().toString(),
-      content: `文档 "${document.originalName}" 已成功上传。您现在可以询问关于该文档的问题。`,
+      content: `Document "${document.originalName}" has been successfully uploaded. You can now ask questions about this document.`,
       role: "assistant",
       timestamp: new Date(),
     };
@@ -159,11 +159,11 @@ const Chat = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <h1 className="text-xl font-bold text-education-blue">
-                AI学习助手
+                AI Learning Assistant
               </h1>
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Bot className="h-4 w-4" />
-                <span>智能对话</span>
+                <span>Smart Chat</span>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -171,12 +171,12 @@ const Chat = () => {
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm">
                     <Upload className="h-4 w-4 mr-2" />
-                    上传文档
+                    Upload Document
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>上传文档</DialogTitle>
+                    <DialogTitle>Upload Document</DialogTitle>
                   </DialogHeader>
                   <DocumentUpload onUploadSuccess={handleUploadSuccess} />
                 </DialogContent>
@@ -187,7 +187,7 @@ const Chat = () => {
                 onClick={() => window.history.back()}
                 size="sm"
               >
-                返回
+                Back
               </Button>
             </div>
           </div>
@@ -225,12 +225,12 @@ const Chat = () => {
                       
                       {message.sources && message.sources.length > 0 && (
                         <div className="mt-3 pt-2 border-t border-gray-200 text-xs">
-                          <p className="font-semibold mb-1">来源:</p>
+                          <p className="font-semibold mb-1">Sources:</p>
                           {message.sources.map((source, index) => (
                             <div key={index} className="mt-1 p-2 bg-background/50 rounded text-xs">
                               <div className="flex items-center mb-1">
                                 <FileText className="h-3 w-3 mr-1" />
-                                <span className="font-medium">引用 {index + 1}</span>
+                                <span className="font-medium">Citation {index + 1}</span>
                               </div>
                               {source.text.substring(0, 150)}
                               {source.text.length > 150 ? '...' : ''}
@@ -240,7 +240,7 @@ const Chat = () => {
                       )}
                       
                       <span className="text-xs opacity-70 mt-2 block">
-                        {message.timestamp.toLocaleTimeString("zh-CN", {
+                        {message.timestamp.toLocaleTimeString("en-US", {
                           hour: "2-digit",
                           minute: "2-digit",
                         })}
@@ -262,7 +262,7 @@ const Chat = () => {
                       <div className="flex items-center gap-2">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         <span className="text-sm text-muted-foreground">
-                          AI正在思考中...
+                          AI is thinking...
                         </span>
                       </div>
                     </div>
@@ -283,10 +283,10 @@ const Chat = () => {
                       }}
                     >
                       <SelectTrigger className="w-full h-8 text-xs">
-                        <SelectValue placeholder="选择文档进行问答..." />
+                        <SelectValue placeholder="Select document for Q&A..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="no_doc">不使用文档</SelectItem>
+                        <SelectItem value="no_doc">No document</SelectItem>
                         {documents.map((doc) => (
                           <SelectItem key={doc.id} value={doc.id.toString()}>
                             {doc.originalName}
@@ -316,7 +316,7 @@ const Chat = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder={isDocumentMode ? "询问关于文档的问题..." : "输入你的问题..."}
+                  placeholder={isDocumentMode ? "Ask questions about the document..." : "Enter your question..."}
                   disabled={isLoading}
                   className="flex-1"
                 />
@@ -331,8 +331,8 @@ const Chat = () => {
               </div>
               <p className="text-xs text-muted-foreground mt-2">
                 {isDocumentMode 
-                  ? `当前使用文档: ${documents.find(d => d.id.toString() === selectedDocument)?.originalName || ""}`
-                  : "按 Enter 发送消息，Shift + Enter 换行"}
+                  ? `Current document: ${documents.find(d => d.id.toString() === selectedDocument)?.originalName || ""}`
+                  : "Press Enter to send, Shift + Enter for new line"}
               </p>
             </div>
           </CardContent>

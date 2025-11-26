@@ -30,7 +30,7 @@ export function DocumentChat() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 获取所有文档
+  // Get all documents
   useEffect(() => {
     const fetchDocuments = async () => {
       try {
@@ -44,7 +44,7 @@ export function DocumentChat() {
     fetchDocuments();
   }, []);
 
-  // 滚动到最新消息
+  // Scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -79,7 +79,7 @@ export function DocumentChat() {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: '抱歉，处理您的问题时出现了错误。请稍后再试。',
+        content: 'Sorry, an error occurred while processing your question. Please try again later.',
       };
 
       setMessages(prev => [...prev, errorMessage]);
@@ -99,16 +99,16 @@ export function DocumentChat() {
     <Card className="flex flex-col h-[600px]">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
-          <CardTitle>文档问答</CardTitle>
+          <CardTitle>Document Q&A</CardTitle>
           <Select
             value={selectedDocument || ''}
             onValueChange={(value) => setSelectedDocument(value)}
           >
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="选择文档" />
+              <SelectValue placeholder="Select Document" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">所有文档</SelectItem>
+              <SelectItem value="">All Documents</SelectItem>
               {documents.map((doc) => (
                 <SelectItem key={doc.id} value={doc.id.toString()}>
                   {doc.originalName}
@@ -122,7 +122,7 @@ export function DocumentChat() {
         <div className="space-y-4">
           {messages.length === 0 ? (
             <div className="text-center text-gray-500 py-8">
-              <p>选择一个文档并开始提问</p>
+              <p>Select a document and start asking questions</p>
             </div>
           ) : (
             messages.map((message) => (
@@ -143,7 +143,7 @@ export function DocumentChat() {
                   
                   {message.sources && message.sources.length > 0 && (
                     <div className="mt-2 pt-2 border-t border-gray-200 text-xs">
-                      <p className="font-semibold">来源:</p>
+                      <p className="font-semibold">Sources:</p>
                       {message.sources.map((source, index) => (
                         <div key={index} className="mt-1 p-1 bg-background/50 rounded">
                           {source.text.substring(0, 150)}
@@ -165,11 +165,11 @@ export function DocumentChat() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="输入您的问题..."
+            placeholder="Enter your question..."
             disabled={isLoading}
           />
           <Button onClick={handleSendMessage} disabled={isLoading || !input.trim()}>
-            {isLoading ? '处理中...' : '发送'}
+            {isLoading ? 'Processing...' : 'Send'}
           </Button>
         </div>
       </CardFooter>
